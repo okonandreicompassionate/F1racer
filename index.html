@@ -17,7 +17,9 @@ body.menu #hud{opacity:0}
 .sm{color:var(--dim);font-size:16px}.sm b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;margin-left:6px}
 #right{position:absolute;right:calc(14px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 #map{width:150px;height:150px;border-radius:14px}
-#camn{padding:4px 14px;font-size:16px;color:var(--dim)}
+#camn{padding:4px 14px;font-size:16px;color:var(--dim);pointer-events:auto;cursor:pointer;user-select:none}
+#camn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#compactSpeed{display:none}
 #lights{position:absolute;left:50%;top:16px;transform:translateX(-50%);display:none;gap:10px;padding:10px 16px}
 #lights i{width:26px;height:26px;border-radius:50%;background:#2a1412;border:1px solid var(--line)}
 #lights i.on{background:var(--hot);box-shadow:0 0 18px var(--hot)}
@@ -95,6 +97,24 @@ button:hover{filter:brightness(1.12)}button:focus-visible{outline:2px solid #fff
  body.touch .ped{height:48px}
 }
 @media (max-height:500px){
+ #dash{display:none}
+ #compactSpeed{display:block}
+ #lapbox{min-width:0;padding:5px 8px}
+ #lap{font-size:20px}
+ #time{font-size:22px}
+ .sm{font-size:12px}
+ .sm b{margin-left:3px}
+ #right{gap:4px}
+ #map{width:76px;height:76px}
+ #camn{padding:2px 8px;font-size:13px}
+ #dash,body.touch #dash{bottom:calc(8px + env(safe-area-inset-bottom));width:min(300px,50vw);padding:4px 10px 3px;transform:translateX(-50%)}
+ #shift,.ped{display:none}
+ #row{gap:5px}
+ #spd,body.touch #spd{font-size:clamp(36px,6vw,48px)}
+ #unit{font-size:12px}
+ #gear,body.touch #gear{width:36px;height:36px;font-size:24px}
+ #rpm{font-size:10px;margin-top:2px}
+ body.touch #dash{bottom:calc(84px + env(safe-area-inset-bottom))}
  #menu{align-items:center;padding:8px 4vw}
  #menu .card{width:min(380px,58vw);max-height:calc(100dvh - 16px);overscroll-behavior:contain}
  #menu h1{font-size:clamp(48px,8vw,72px)}
@@ -105,12 +125,31 @@ button:hover{filter:brightness(1.12)}button:focus-visible{outline:2px solid #fff
  #menu .pick-row button{font-size:15px;padding:6px 9px}
  #menu #start{margin-top:8px;padding:8px 24px;font-size:20px}
 }
+@media (max-width:500px) and (max-height:500px){
+ body.touch #dash{bottom:calc(140px + env(safe-area-inset-bottom));width:40vw}
+ body.touch #tc,body.touch #trst{top:calc(142px + env(safe-area-inset-top));width:44px;height:30px;padding:0;font-size:11px;border-radius:9px}
+ body.touch #tc{right:calc(62px + env(safe-area-inset-right))}
+ body.touch #trst{right:calc(14px + env(safe-area-inset-right))}
+}
+@media (max-height:260px){
+ body.touch #lapbox{top:calc(8px + env(safe-area-inset-top));padding:4px 7px}
+ body.touch #lap{font-size:15px}
+ body.touch #time{font-size:17px}
+ body.touch .sm{font-size:10px;line-height:1.05}
+ body.touch #lapbox .sm:nth-of-type(5),body.touch #lapbox .sm:nth-of-type(6){display:none}
+ body.touch #right{top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:150px;height:58px;display:block}
+ body.touch #map{position:absolute;top:0;right:0;width:58px;height:58px}
+ body.touch #camn{display:block;position:absolute;top:calc(66px + env(safe-area-inset-top));right:0;width:58px;padding:3px 2px;text-align:center;font-size:11px;line-height:20px;z-index:6}
+ body.touch #tc{display:none}
+ body.touch #trst{top:calc(8px + env(safe-area-inset-top));width:42px;height:30px;padding:0;font-size:12px;border-radius:9px}
+ body.touch #trst{right:calc(124px + env(safe-area-inset-right))}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body class="menu">
 <canvas id="c"></canvas>
 <div id="hud">
- <div id="lapbox" class="glass"><div id="lap">LAP 1/3</div><div id="time">0:00.000</div><div class="sm">POS<b id="pos">1/6</b></div><div class="sm">LAST<b id="last">–:––.–––</b></div><div class="sm">BEST<b id="best">–:––.–––</b></div><div class="sm">DAMAGE<b id="damage">0%</b></div><div class="sm">TYRES<b id="tyres">100%</b></div></div>
- <div id="right"><canvas id="map" class="glass" width="300" height="300"></canvas><div id="camn" class="glass">Chase</div></div>
+ <div id="lapbox" class="glass"><div id="lap">LAP 1/3</div><div id="time">0:00.000</div><div id="compactSpeed" class="sm">KM/H<b id="compactKph">0</b></div><div class="sm">POS<b id="pos">1/6</b></div><div class="sm">LAST<b id="last">–:––.–––</b></div><div class="sm">BEST<b id="best">–:––.–––</b></div><div class="sm">DAMAGE<b id="damage">0%</b></div><div class="sm">TYRES<b id="tyres">100%</b></div></div>
+ <div id="right"><canvas id="map" class="glass" width="300" height="300"></canvas><div id="camn" class="glass" role="button" tabindex="0" aria-label="Change camera: Chase">Chase</div></div>
  <div id="lights" class="glass"><i></i><i></i><i></i><i></i><i></i></div><div id="goMsg">GO</div>
  <div id="dash" class="glass"><div id="shift"></div>
   <div id="row"><div class="ped"><b id="thr" style="--c:#4aa8ff"></b><b id="brk" style="--c:#ff3d2e"></b></div>
@@ -430,7 +469,7 @@ function fx(dt){const vf=vfNow,gr=Math.abs(st.lat)>W/2+1.7,fx_=Math.sin(st.h),fz
 // ---------- state ----------
 const K={up:0,down:0,left:0,right:0},TC={up:0,down:0,left:0,right:0},inp=k=>K[k]||TC[k]?1:0;
 const st={x:0,z:0,h:0,yawRate:0,vx:0,vz:0,steer:0,idx:0,lat:0,t:0,raceDistance:0,lap:1,cp:false,crossed:false,lapStart:0,last:null,best:null,rpm:4500,roll:0,pitch:0,damage:0,tireWear:0,tireTemp:82,wingDamage:0,steeringDamage:0};
-let state='menu',camMode=0,gridT=0,shake=0,vfNow=0,thrNow=0,brkNow=0,gear=1,menuT=0,reverseNow=false;
+let state='menu',camMode=0,gridT=0,vfNow=0,thrNow=0,brkNow=0,gear=1,menuT=0,reverseNow=false,playerContactingCars=false;
 const FIXED_DT=1/120,renderPrev={x:0,z:0,h:0,steer:0};let accumulator=0;
 function nearest(x,z,full){let best=1e9,bi=st.idx;for(let k=full?0:-30;k<(full?N:30);k++){const i=full?k:(st.idx+k+N)%N,dx=x-PS[i].x,dz=z-PS[i].z,d=dx*dx+dz*dz;if(d<best){best=d;bi=i}}return bi}
 function place(i,full){st.idx=i;st.x=PS[i].x;st.z=PS[i].z;st.h=Math.atan2(T[i].x,T[i].z);st.yawRate=0;st.vx=st.vz=0;st.steer=0;st.lat=0;Object.assign(renderPrev,{x:st.x,z:st.z,h:st.h,steer:st.steer})}
@@ -558,7 +597,7 @@ function applyImpactDamage(car,impactSpeed,frontHit=false){
 }
 function resolvePlayerCollisions(){
  const playerForward=new THREE.Vector2(Math.sin(st.h),Math.cos(st.h)),playerPosition=new THREE.Vector2(st.x,st.z),playerVelocity=new THREE.Vector2(st.vx,st.vz);
- let contacted=false,playerContact=false;
+ let contacted=false,playerContact=false,maxPlayerImpact=0,contactYawKick=0;
  const pose=d=>{const p=positionOnTrack(d.distance,d.lane),look=positionOnTrack(d.distance+12,d.lane),forward=new THREE.Vector2(look.x-p.x,look.z-p.z).normalize(),right=new THREE.Vector2(-forward.y,forward.x);
   return{forward,right,position:new THREE.Vector2(p.x,p.z),velocity:forward.clone().multiplyScalar(d.speed).addScaledVector(right,d.lateralSpeed),scale:.88}};
  for(let i=0;i<aiDrivers.length;i++)for(let j=i+1;j<aiDrivers.length;j++){
@@ -588,7 +627,8 @@ function resolvePlayerCollisions(){
   d.distance+=aiCorrection.dot(ai.forward);d.lane=clamp(d.lane+aiCorrection.dot(contact.rightB),-5.8,5.8);
   const relative=playerVelocity.clone().sub(ai.velocity),closingSpeed=Math.max(0,-relative.dot(contact.normal)),scrub=relative.addScaledVector(contact.normal,closingSpeed).length();
   const impactSpeed=Math.hypot(closingSpeed,scrub*.25);
-  if(impactSpeed>.5){shake=Math.min(1,shake+.12+impactSpeed*.025);
+  if(impactSpeed>.5){
+   if(impactSpeed>maxPlayerImpact){maxPlayerImpact=impactSpeed;contactYawKick=clamp(contact.normal.dot(new THREE.Vector2(-playerForward.y,playerForward.x))*closingSpeed*.003,-.12,.12)}
    if(impactSpeed>PHYS.damageThreshold){
     const playerFrontHit=contact.normal.dot(playerForward)<-.45,aiFrontHit=contact.normal.dot(ai.forward)>.45;
     const damaged=applyImpactDamage(st,impactSpeed,playerFrontHit),aiDamaged=applyImpactDamage(d,impactSpeed,aiFrontHit);
@@ -598,10 +638,10 @@ function resolvePlayerCollisions(){
   }
   resolveImpact(playerVelocity,ai.velocity,contact.normal);
   d.speed=ai.velocity.dot(ai.forward);d.lateralSpeed=ai.velocity.dot(ai.right);
-  const yawKick=clamp(contact.normal.dot(new THREE.Vector2(-playerForward.y,playerForward.x))*impactSpeed*.003,-.12,.12);
-  st.yawRate+=yawKick
  }
  st.x=playerPosition.x;st.z=playerPosition.y;st.vx=playerVelocity.x;st.vz=playerVelocity.y;
+ if(playerContact&&!playerContactingCars&&maxPlayerImpact>3)st.yawRate+=contactYawKick;
+ playerContactingCars=playerContact;
  if(contacted){
   aiDrivers.forEach(syncAICarVisual);
  }
@@ -615,7 +655,7 @@ function playerPosition(){
  const all=[{distance:st.raceDistance,player:true},...aiDrivers.map(d=>({distance:d.distance,player:false}))];
  return all.sort((a,b)=>b.distance-a.distance).findIndex(x=>x.player)+1
 }
-function newRace(){place(startIndex);Object.assign(st,{t:0,raceDistance:0,lap:1,cp:false,crossed:false,lapStart:0,last:null,best:null,damage:0,tireWear:0,tireTemp:82,wingDamage:0,steeringDamage:0,impactCooldown:0});resetAIs();$('last').textContent=$('best').textContent='–:––.–––'}
+function newRace(){playerContactingCars=false;place(startIndex);Object.assign(st,{t:0,raceDistance:0,lap:1,cp:false,crossed:false,lapStart:0,last:null,best:null,damage:0,tireWear:0,tireTemp:82,wingDamage:0,steeringDamage:0,impactCooldown:0});resetAIs();$('last').textContent=$('best').textContent='–:––.–––'}
 newRace();
 const fmt=t=>{if(t==null)return'–:––.–––';const m=Math.floor(t/60);return m+':'+(t-m*60).toFixed(3).padStart(6,'0')};
 
@@ -659,7 +699,6 @@ function physics(dt){
    st.vx-=R0.x*normalScale*vn;st.vz-=R0.z*normalScale*vn;
    const tangentX=-R0.z*s,tangentZ=R0.x*s,tangentSpeed=st.vx*tangentX+st.vz*tangentZ;
    st.vx+=tangentX*tangentSpeed*(tangentScale-1);st.vz+=tangentZ*tangentSpeed*(tangentScale-1);
-   shake=Math.min(1,.2+vn*.05);
    if(applyImpactDamage(st,vn,true)){
     st.wingDamage=clamp(st.wingDamage+st.damage*.35,0,.85);playImpactSound(vn);
     if(vn>12){puff(st.x,.4,st.z,0xffb35c,2.2);puff(st.x,.7,st.z,0x777777,2.8)}
@@ -704,6 +743,12 @@ function sfx(rpm,thr){
 // ---------- HUD ----------
 const shift=$('shift');for(let i=0;i<15;i++)shift.appendChild(document.createElement('i'));
 const leds=[...shift.children],lamps=[...document.querySelectorAll('#lights i')],camNames=['Chase','Cockpit','Airbox'];
+function setCameraMode(){
+ camMode=(camMode+1)%camNames.length;
+ const label=$('camn');
+ label.textContent=camNames[camMode];
+ label.setAttribute('aria-label','Change camera: '+camNames[camMode])
+}
 const tops=[0,24,38,51,63,74,84,93,105];
 const mm=$('map'),mg=mm.getContext('2d'),base=document.createElement('canvas');base.width=base.height=300;let mp=(x,z)=>[x,z];
 function rebuildTrackMap(){
@@ -726,7 +771,7 @@ rebuildTrackMap();[...$('trackSelect').children][0].classList.add('selected');$(
 function hud(dt){
  const vf=vfNow;gear=1;while(gear<8&&vf>=tops[gear])gear++;const lo=tops[gear-1];
  const tr=vf<1.5?4500+thrNow*6500:6500+(vf-lo)/(tops[gear]-lo)*5800;st.rpm+=(tr-st.rpm)*Math.min(1,dt*12);
- $('spd').textContent=Math.round(vf*3.6);$('gear').textContent=reverseNow?'R':vf<1&&!thrNow?'N':gear;$('rpm').textContent=Math.round(st.rpm/10)*10+' RPM';
+ const speedKph=Math.round(vf*3.6);$('spd').textContent=speedKph;$('compactKph').textContent=speedKph;$('gear').textContent=reverseNow?'R':vf<1&&!thrNow?'N':gear;$('rpm').textContent=Math.round(st.rpm/10)*10+' RPM';
  const n=clamp(Math.floor((st.rpm-9000)/3400*15),0,15);leds.forEach((l,i)=>{l.style.background=i<n?(i<5?'#3ddc84':i<10?'#ff3d2e':'#4aa8ff'):''});
  $('thr').style.setProperty('--v',thrNow*100+'%');$('brk').style.setProperty('--v',brkNow*100+'%');
  $('damage').textContent=Math.round(st.damage*100)+'%';$('tyres').textContent=Math.round((1-st.tireWear)*100)+'%';$('lap').textContent='LAP '+Math.min(st.lap,LAPS)+'/'+LAPS;$('time').textContent=fmt(st.t-(st.crossed?st.lapStart:0));$('pos').textContent=playerPosition()+'/'+(aiDrivers.length+1);
@@ -750,21 +795,21 @@ function visuals(dt,now,alpha){
  else if(camMode===0){tgt.set(renderX-fx*(5+vf*.012),1.55+vf*.003,renderZ-fz*(5+vf*.012));camera.position.lerp(tgt,1-Math.exp(-dt*7));tv.set(renderX+fx*5,.7,renderZ+fz*5);look.lerp(tv,1-Math.exp(-dt*10));camera.fov=58+vf*.2}
  else if(camMode===1){car.localToWorld(camera.position.set(0,.93,.12));car.localToWorld(look.set(0,.85,9));camera.fov=78+vf*.12}
  else{car.localToWorld(camera.position.set(0,1.45,-.9));car.localToWorld(look.set(0,.9,12));camera.fov=70+vf*.15}
- if(shake>0){camera.position.x+=rnd(-1,1)*shake*.12;camera.position.y+=rnd(-1,1)*shake*.12;shake=Math.max(0,shake-dt*2.5)}
- if(Math.abs(st.lat)>W/2+1.7)camera.position.y+=rnd(-1,1)*Math.min(.05,vf*.0012);
  camera.lookAt(look);camera.updateProjectionMatrix()}
 
 // ---------- flow ----------
 function startRace(){audio();if(ac&&ac.state==='suspended')ac.resume();newRace();state='grid';gridT=0;document.body.classList.remove('menu');$('lights').style.display='flex';$('goMsg').style.opacity=0}
-function reset(){if(state==='menu')return;for(const k in K)K[k]=TC[k]=0;document.querySelectorAll('.pad.on').forEach(el=>el.classList.remove('on'));const i=nearest(st.x,st.z,true);const c=st.crossed,l=st.lapStart,cp=st.cp;place(i);st.crossed=c;st.lapStart=l;st.cp=cp;vfNow=0;reverseNow=false}
+function reset(){if(state==='menu')return;playerContactingCars=false;for(const k in K)K[k]=TC[k]=0;document.querySelectorAll('.pad.on').forEach(el=>el.classList.remove('on'));const i=nearest(st.x,st.z,true);const c=st.crossed,l=st.lapStart,cp=st.cp;place(i);st.crossed=c;st.lapStart=l;st.cp=cp;vfNow=0;reverseNow=false}
 $('start').onclick=startRace;
 addEventListener('keydown',e=>{const k=e.key.toLowerCase(),m={w:'up',arrowup:'up',s:'down',arrowdown:'down',a:'left',arrowleft:'left',d:'right',arrowright:'right'}[k];
- if(m){K[m]=1;e.preventDefault()}else if(k==='c'){camMode=(camMode+1)%3;$('camn').textContent=camNames[camMode]}else if(k==='r')reset();else if(k==='m')muted=!muted;else if(k==='enter'&&state!=='race'&&state!=='grid')startRace()});
+ if(m){K[m]=1;e.preventDefault()}else if(k==='c'){setCameraMode()}else if(k==='r')reset();else if(k==='m')muted=!muted;else if(k==='enter'&&state!=='race'&&state!=='grid')startRace()});
 addEventListener('keyup',e=>{const m={w:'up',arrowup:'up',s:'down',arrowdown:'down',a:'left',arrowleft:'left',d:'right',arrowright:'right'}[e.key.toLowerCase()];if(m)K[m]=0});
 addEventListener('blur',()=>{for(const k in K)K[k]=TC[k]=0});
 [['tl','left'],['tr','right'],['tb','down'],['tg','up']].forEach(([id,k])=>{const el=$(id),on=v=>e=>{e.preventDefault();TC[k]=v;el.classList.toggle('on',!!v)};
  el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);on(1)(e)});['pointerup','pointercancel','lostpointercapture'].forEach(t=>el.addEventListener(t,on(0)))});
-$('tc').addEventListener('pointerdown',e=>{e.preventDefault();camMode=(camMode+1)%3;$('camn').textContent=camNames[camMode]});
+$('tc').addEventListener('pointerdown',e=>{e.preventDefault();setCameraMode()});
+$('camn').addEventListener('click',setCameraMode);
+$('camn').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setCameraMode()}});
 $('trst').addEventListener('pointerdown',e=>{e.preventDefault();reset()});
 addEventListener('touchstart',()=>document.body.classList.add('touch'),{once:true,passive:true});if(mobile)document.body.classList.add('touch');
 document.addEventListener('contextmenu',e=>e.preventDefault());
