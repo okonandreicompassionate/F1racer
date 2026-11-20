@@ -19,12 +19,6 @@ body.menu #hud{opacity:0}
 #map{width:150px;height:150px;border-radius:14px}
 #camn{padding:4px 14px;font-size:16px;color:var(--dim);pointer-events:auto;cursor:pointer;user-select:none}
 #camn:focus-visible{outline:2px solid #fff;outline-offset:2px}
-#audioToggle{width:42px;height:34px;padding:0;pointer-events:auto;font-size:19px;color:var(--dim);cursor:pointer}
-#audioPanel{position:fixed;z-index:12;top:calc(222px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:min(230px,calc(100vw - 28px));padding:10px 12px;pointer-events:auto}
-#audioPanel[hidden]{display:none}
-.audioRow{display:grid;grid-template-columns:48px 1fr 32px;align-items:center;gap:8px;font-size:15px}
-.audioRow+.audioRow{margin-top:7px}
-.audioRow input{width:100%;margin:0;accent-color:var(--hot);touch-action:pan-x}
 #hudButtons{display:flex;gap:8px}
 #pitLaneToggle{width:50px;height:34px;padding:0 6px;pointer-events:auto;font-size:15px;cursor:pointer}
 #pitLaneToggle[aria-pressed="true"]{color:#ffd84a;border-color:#ffd84a;box-shadow:0 0 0 1px #ffd84a}
@@ -45,11 +39,12 @@ body.menu #hud{opacity:0}
 #pauseOptions{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .pauseSetting{display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px 12px;margin:10px 0;color:var(--dim);font-size:17px}
 .pauseSetting input{grid-column:1/-1;width:100%;margin:0;accent-color:var(--hot);touch-action:pan-x}
+.menuSetting{display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px 12px;margin:7px 0;color:var(--dim);font-size:17px;max-width:460px}
+.menuSetting input{grid-column:1/-1;width:100%;margin:0;accent-color:var(--hot);touch-action:pan-x}
+.menuSetting output{color:var(--ink);font-variant-numeric:tabular-nums}
 .pauseSetting output{color:var(--ink);font-variant-numeric:tabular-nums}
 .pauseOptionButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 #gameMenuToggle:focus-visible,.pauseSetting input:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.audioRow output{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
-#audioToggle:focus-visible,#audioPanel input:focus-visible{outline:2px solid #fff;outline-offset:2px}
 #compactSpeed{display:none}
 #lights{position:absolute;left:50%;top:16px;transform:translateX(-50%);display:none;gap:10px;padding:10px 16px}
 #lights i{width:26px;height:26px;border-radius:50%;background:#2a1412;border:1px solid var(--line)}
@@ -172,14 +167,77 @@ button:hover{filter:brightness(1.12)}button:focus-visible{outline:2px solid #fff
  body.touch #right{top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:150px;height:118px;display:block}
  body.touch #map{position:absolute;top:0;right:0;width:58px;height:58px}
  body.touch #camn{display:block;position:absolute;top:calc(66px + env(safe-area-inset-top));right:0;width:58px;padding:3px 2px;text-align:center;font-size:11px;line-height:20px;z-index:6}
- body.touch #audioToggle{position:absolute;top:calc(94px + env(safe-area-inset-top));right:calc(136px + env(safe-area-inset-right));width:58px;height:28px;font-size:15px}
  body.touch #gameMenuToggle{position:absolute;top:calc(94px + env(safe-area-inset-top));right:0;width:58px;height:28px;font-size:15px}
  body.touch #pitLaneToggle{position:absolute;top:calc(94px + env(safe-area-inset-top));right:calc(68px + env(safe-area-inset-right));width:58px;height:28px;font-size:13px}
- body.touch #audioPanel{top:calc(130px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right))}
  body.touch #tc{display:none}
  body.touch #trst{top:calc(8px + env(safe-area-inset-top));width:42px;height:30px;padding:0;font-size:12px;border-radius:9px}
  body.touch #trst{right:calc(124px + env(safe-area-inset-right))}
  body.touch #td{top:calc(144px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:52px;height:28px;padding:0;font-size:10px;border-radius:9px}
+}
+/* Keep HUD and touch controls inside the viewport across portrait and landscape sizes. */
+@media (max-width:600px){
+ #menu{align-items:flex-end;padding:16px}
+ #menu .card{width:min(460px,100%);max-height:calc(100dvh - 32px)}
+ #menu h1{font-size:clamp(52px,18vw,82px)}
+ body.touch #right{width:92px}
+ body.touch #map{width:92px;height:92px}
+ body.touch #camn{width:92px;text-align:center}
+ body.touch #hudButtons{justify-content:flex-end;max-width:92px;flex-wrap:wrap}
+ body.touch #pitLaneToggle{width:50px}
+ body.touch #tc{top:calc(178px + env(safe-area-inset-top))}
+ body.touch #trst{top:calc(228px + env(safe-area-inset-top))}
+ body.touch #td{top:calc(278px + env(safe-area-inset-top))}
+}
+
+@media (max-width:600px) and (orientation:portrait){
+ body.touch #tl{left:10px}
+ body.touch #tr{left:86px}
+ body.touch #tb{right:104px}
+ body.touch #tg{right:10px}
+ body.touch #dash{bottom:calc(132px + env(safe-area-inset-bottom))}
+}
+
+@media (max-height:500px){
+ body.touch #lapbox{max-width:min(180px,38vw)}
+ body.touch #right{top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:76px;height:auto;gap:4px}
+ body.touch #map{width:76px;height:76px}
+ body.touch #camn{width:76px;padding:2px 4px;text-align:center;font-size:12px}
+ body.touch #hudButtons{width:76px;flex-wrap:wrap;justify-content:flex-end}
+ body.touch #pitLaneToggle{width:42px;height:30px;font-size:12px}
+ body.touch #tc{top:calc(126px + env(safe-area-inset-top));right:calc(92px + env(safe-area-inset-right));width:44px;height:30px;padding:0;font-size:11px;border-radius:9px}
+ body.touch #trst{top:calc(126px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:78px;height:30px;padding:0;font-size:12px;border-radius:9px}
+ body.touch #td{top:calc(164px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:78px;height:30px;padding:0;font-size:11px;border-radius:9px}
+ body.touch #dash{bottom:calc(82px + env(safe-area-inset-bottom))}
+ body.touch #tl,body.touch #tr,body.touch #tb,body.touch #tg{bottom:calc(8px + env(safe-area-inset-bottom))}
+ body.touch #tl{left:8px;width:58px;height:62px}
+ body.touch #tr{left:72px;width:58px;height:62px}
+ body.touch #tb{right:94px;width:72px;height:62px}
+ body.touch #tg{right:8px;width:72px;height:62px}
+}
+
+@media (max-width:500px) and (max-height:500px){
+ body.touch #tc{right:calc(94px + env(safe-area-inset-right))}
+ body.touch #trst{right:calc(8px + env(safe-area-inset-right))}
+}
+
+@media (max-height:260px){
+ body.touch #lapbox{top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));max-width:38vw;padding:3px 6px}
+ body.touch #lap{font-size:13px}
+ body.touch #time{font-size:15px}
+ body.touch #lapbox .sm{display:none}
+ body.touch #lapbox #compactSpeed{display:block;font-size:11px}
+ body.touch #right{top:calc(6px + env(safe-area-inset-top));right:calc(6px + env(safe-area-inset-right));width:58px}
+ body.touch #map{width:58px;height:58px}
+ body.touch #camn{width:58px;height:24px;line-height:18px;font-size:10px;padding:2px}
+ body.touch #hudButtons{width:58px;gap:3px}
+ body.touch #tc{display:none}
+ body.touch #trst{top:calc(6px + env(safe-area-inset-top));right:calc(72px + env(safe-area-inset-right));width:58px;height:24px;font-size:10px}
+ body.touch #td{top:calc(38px + env(safe-area-inset-top));right:calc(72px + env(safe-area-inset-right));width:58px;height:24px;font-size:10px}
+ body.touch #dash{display:none}
+ body.touch #tl{left:6px;width:50px;height:48px}
+ body.touch #tr{left:62px;width:50px;height:48px}
+ body.touch #tb{right:62px;width:50px;height:48px}
+ body.touch #tg{right:6px;width:50px;height:48px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .mp{display:flex;gap:6px;flex-wrap:wrap}.mp input{font:inherit;font-size:17px;color:#fff;background:rgba(10,14,20,.78);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:118px;pointer-events:auto;-webkit-user-select:text;user-select:text;touch-action:auto;outline:0}.mp input:focus{border-color:var(--hot)}#mpRoom{text-transform:uppercase}#mpInfo{margin-top:6px;font-size:15px;color:var(--dim);min-height:18px}
@@ -196,8 +254,7 @@ button:disabled{opacity:.45}body.garage #menu{display:none}
 <canvas id="c"></canvas>
 <div id="hud">
  <div id="lapbox" class="glass"><div id="lap">LAP 1/3</div><div id="time">0:00.000</div><div id="compactSpeed" class="sm">KM/H<b id="compactKph">0</b></div><div class="sm">POS<b id="pos">1/6</b></div><div class="sm">LAST<b id="last">–:––.–––</b></div><div class="sm">BEST<b id="best">–:––.–––</b></div><div class="sm">DAMAGE<b id="damage">0%</b></div><div class="sm">TYRES<b id="tyres">100%</b></div></div>
- <div id="right"><canvas id="map" class="glass" width="300" height="300"></canvas><div id="camn" class="glass" role="button" tabindex="0" aria-label="Change camera: Chase">Chase</div><div id="hudButtons"><button id="audioToggle" class="glass" type="button" aria-label="Open audio controls" aria-expanded="false" aria-controls="audioPanel">♫</button><button id="pitLaneToggle" class="glass" type="button" aria-label="Request pit lane guidance" aria-pressed="false" title="Guide to your pit stall">PIT</button><button id="gameMenuToggle" class="glass" type="button" aria-label="Open game menu" aria-haspopup="dialog">☰</button></div></div>
- <div id="audioPanel" class="glass" hidden><label class="audioRow" for="carVolume"><span>Car</span><input id="carVolume" type="range" min="0" max="100" value="70"><output id="carVolumeValue" for="carVolume">70%</output></label><label class="audioRow" for="musicVolume"><span>Music</span><input id="musicVolume" type="range" min="0" max="100" value="35"><output id="musicVolumeValue" for="musicVolume">35%</output></label></div>
+ <div id="right"><canvas id="map" class="glass" width="300" height="300"></canvas><div id="camn" class="glass" role="button" tabindex="0" aria-label="Change camera: Chase">Chase</div><div id="hudButtons"><button id="pitLaneToggle" class="glass" type="button" aria-label="Request pit lane guidance" aria-pressed="false" title="Guide to your pit stall">PIT</button><button id="gameMenuToggle" class="glass" type="button" aria-label="Open game menu" aria-haspopup="dialog">☰</button></div></div>
  <div id="lights" class="glass"><i></i><i></i><i></i><i></i><i></i></div><div id="goMsg">GO</div>
  <div id="dash" class="glass"><div id="shift"></div>
   <div id="row"><div class="ped"><b id="thr" style="--c:#4aa8ff"></b><b id="brk" style="--c:#ff3d2e"></b></div>
@@ -213,6 +270,9 @@ button:disabled{opacity:.45}body.garage #menu{display:none}
 <div class="pick-label">Choose a circuit</div><div id="trackSelect" class="pick-row"></div><div class="pick-label">Race weather · host chooses · conditions can change</div><div id="weatherSelect" class="pick-row"></div>
 <div id="slotWrap" style="display:none"><div id="slotSelect"></div></div><div class="pick-label">Race rules (room host sets them)</div><div id="rules"></div>
 <div class="pick-row"><button id="gOpen">Garage</button><button id="musicAdd">♪ Add music</button><button id="qBtn">Quality</button></div><input type="file" id="musicFile" multiple accept="audio/*" hidden>
+<div class="pick-label">Sound</div>
+<label class="menuSetting" for="menuCarVolume"><span>Car volume</span><output id="menuCarVolumeValue" for="menuCarVolume">70%</output><input id="menuCarVolume" type="range" min="0" max="100" value="70"></label>
+<label class="menuSetting" for="menuMusicVolume"><span>Music volume</span><output id="menuMusicVolumeValue" for="menuMusicVolume">35%</output><input id="menuMusicVolume" type="range" min="0" max="100" value="35"></label>
 <div class="pick-label">Online lobby (friends, no AI)</div>
 <div id="mpJoinRow" class="mp"><input id="mpName" placeholder="Your name" maxlength="12" autocomplete="off"><input id="mpRoom" placeholder="Room code" maxlength="6" autocomplete="off"><div class="pick-row"><button id="mpJoin">Create / Join</button></div></div>
 <div id="rooms" class="pick-row"></div><div id="lobby"></div>
@@ -225,17 +285,17 @@ button:disabled{opacity:.45}body.garage #menu{display:none}
 <script>
 const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a);
 var LAPS=5;const W=18,N=700,mobile=matchMedia('(pointer:coarse)').matches,PIT_BOX_COUNT=12,PIT_BOX_START=50,PIT_BOX_SPACING=20.5,PIT_LANE_CENTER=W/2+9,GRID_LANE_OFFSET=5.1,GRID_ROW_GAP=22,GRID_PAIR_GAP=11,AI_TOP_SPEED=96,AI_LATERAL_ACCEL=14.5;
-const renderer=new THREE.WebGLRenderer({canvas:$('c'),antialias:!mobile,powerPreference:'default'});
-const MAX_RENDER_PIXELS=3840*2160,MAX_PIXEL_RATIO=mobile?1.5:2;
+const renderer=new THREE.WebGLRenderer({canvas:$('c'),antialias:true,powerPreference:'high-performance',alpha:false});
+const MAX_RENDER_PIXELS=3840*2160,MAX_PIXEL_RATIO=mobile?2:2.5;
 let renderScale=1,frameSample=0,frameSamples=0;
 function updateRenderResolution(){
  const pixelBudgetRatio=Math.sqrt(MAX_RENDER_PIXELS/(innerWidth*innerHeight));
  renderer.setPixelRatio(Math.min(devicePixelRatio*renderScale,MAX_PIXEL_RATIO,pixelBudgetRatio));
  renderer.setSize(innerWidth,innerHeight,false)
 }
-renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
+renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xb9d3e7,360,2600);
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0xb9d3e7,.00022);
 const camera=new THREE.PerspectiveCamera(62,1,.1,5000);
 
 // ---------- sky, light, environment ----------
@@ -271,7 +331,7 @@ void main(){
  gl_FragColor=vec4(c,1.);
 }`});
 const sky=new THREE.Mesh(new THREE.SphereGeometry(3000,32,16),skyMat);scene.add(sky);
-const sun=new THREE.DirectionalLight(0xfff1dc,2.55);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);
+const sun=new THREE.DirectionalLight(0xfff1dc,2.75);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);
 Object.assign(sun.shadow.camera,{left:-35,right:35,top:35,bottom:-35,near:1,far:250});sun.shadow.bias=-.0004;sun.shadow.normalBias=.05;
 scene.add(sun,sun.target,new THREE.HemisphereLight(0xbfe0ff,0x526544,.92));
 
@@ -860,12 +920,10 @@ function loadEng(){try{const b=atob($('engb64').textContent.trim()),u=new Uint8A
 let carVolume=.7,musicVolume=.35;
 try{const savedCar=localStorage.getItem('apex.carVolume'),savedMusic=localStorage.getItem('apex.musicVolume');if(savedCar!==null&&Number.isFinite(+savedCar))carVolume=clamp(+savedCar,0,1);if(savedMusic!==null&&Number.isFinite(+savedMusic))musicVolume=clamp(+savedMusic,0,1)}catch(e){console.warn('Could not load audio settings',e)}
 const mus=new Audio(),pl=[];let npT=0,musFail=0;mus.volume=musicVolume;mus.preload='auto';
-$('musicVolume').value=Math.round(musicVolume*100);$('musicVolumeValue').value=Math.round(musicVolume*100)+'%';
-function setMusicVolume(value,persist=false){musicVolume=clamp(value,0,1);mus.volume=musicVolume;const percent=Math.round(musicVolume*100)+'%';$('musicVolume').value=Math.round(musicVolume*100);$('musicVolumeValue').value=percent;$('pauseMusicVolume').value=Math.round(musicVolume*100);$('pauseMusicVolumeValue').value=percent;if(persist)try{localStorage.setItem('apex.musicVolume',musicVolume)}catch(e){console.warn('Could not save music volume',e)}}
-$('musicVolume').addEventListener('input',e=>setMusicVolume(+e.target.value/100));$('musicVolume').addEventListener('change',()=>setMusicVolume(musicVolume,true));
+function setMusicVolume(value,persist=false){musicVolume=clamp(value,0,1);mus.volume=musicVolume;const percent=Math.round(musicVolume*100)+'%';['menuMusicVolume','pauseMusicVolume'].forEach(id=>$(id).value=Math.round(musicVolume*100));['menuMusicVolumeValue','pauseMusicVolumeValue'].forEach(id=>$(id).value=percent);if(persist)try{localStorage.setItem('apex.musicVolume',musicVolume)}catch(e){console.warn('Could not save music volume',e)}}
+setMusicVolume(musicVolume);
+$('menuMusicVolume').addEventListener('input',e=>setMusicVolume(+e.target.value/100));$('menuMusicVolume').addEventListener('change',()=>setMusicVolume(musicVolume,true));
 $('pauseMusicVolume').addEventListener('input',e=>setMusicVolume(+e.target.value/100));$('pauseMusicVolume').addEventListener('change',()=>setMusicVolume(musicVolume,true));
-$('audioToggle').addEventListener('click',()=>{const panel=$('audioPanel'),open=panel.hidden;panel.hidden=!open;$('audioToggle').setAttribute('aria-expanded',String(open));$('audioToggle').setAttribute('aria-label',open?'Close audio controls':'Open audio controls')});
-addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('audioPanel').hidden){e.stopPropagation();$('audioPanel').hidden=true;$('audioToggle').setAttribute('aria-expanded','false');$('audioToggle').setAttribute('aria-label','Open audio controls');$('audioToggle').focus()}});
 function musicNext(){if(!pl.length)return;const i=pl.i=((pl.i==null?-1:pl.i)+1)%pl.length;mus.src=pl[i].u;mus.play().catch(()=>{});const n=$('np');n.textContent='♪ '+pl[i].n;n.style.opacity=1;clearTimeout(npT);npT=setTimeout(()=>n.style.opacity=0,4000)}
 function musicStart(){if(pl.length&&!mus.src)musicNext()}
 mus.onended=()=>{musFail=0;musicNext()};mus.onerror=()=>{if(++musFail<=pl.length)setTimeout(musicNext,200)};
@@ -874,7 +932,7 @@ $('musicAdd').onclick=()=>$('musicFile').click();
 $('musicFile').onchange=e=>{[...e.target.files].forEach(f=>pl.push({n:f.name.replace(/\.[^.]+$/,''),u:URL.createObjectURL(f)}));musicStart()};
 addEventListener('pointerdown',musicStart,{once:true});addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;musicStart();if(e.key==='n'||e.key==='N')musicNext()});
 // ---- quality ----
-const QS=[{n:'Low',sh:0,ms:512},{n:'Medium',sh:1,ms:1024},{n:'High',sh:1,ms:2048}];let qi=2,fc=0;
+const QS=[{n:'Low',sh:0,ms:512},{n:'Medium',sh:1,ms:1024},{n:'High',sh:1,ms:mobile?2048:4096}];let qi=2,fc=0;
 function setQ(i){qi=i;const q=QS[i];sun.castShadow=!!q.sh;
  if(q.sh&&sun.shadow.mapSize.x!==q.ms){sun.shadow.map&&sun.shadow.map.dispose();sun.shadow.map=null;sun.shadow.mapSize.set(q.ms,q.ms)}
  renderer.shadowMap.autoUpdate=i===2;$('qBtn').textContent='Quality: '+q.n;$('pauseQuality').textContent='Quality: '+q.n;updateRenderResolution();saveG()}
@@ -1011,9 +1069,9 @@ function finish(){state='done';if(QL.on){finishQual();return}if(!NET.on)startSlo
 
 // ---------- audio ----------
 let ac,o1,o2,o3,fl,gn,impactBus,carGain,muted=false;
-$('carVolume').value=Math.round(carVolume*100);$('carVolumeValue').value=Math.round(carVolume*100)+'%';
-function setCarVolume(value,persist=false){carVolume=clamp(value,0,1);if(carGain&&ac)carGain.gain.setTargetAtTime(carVolume,ac.currentTime,.03);const percent=Math.round(carVolume*100)+'%';$('carVolume').value=Math.round(carVolume*100);$('carVolumeValue').value=percent;$('pauseCarVolume').value=Math.round(carVolume*100);$('pauseCarVolumeValue').value=percent;if(persist)try{localStorage.setItem('apex.carVolume',carVolume)}catch(e){console.warn('Could not save car volume',e)}}
-$('carVolume').addEventListener('input',e=>setCarVolume(+e.target.value/100));$('carVolume').addEventListener('change',()=>setCarVolume(carVolume,true));
+function setCarVolume(value,persist=false){carVolume=clamp(value,0,1);if(carGain&&ac)carGain.gain.setTargetAtTime(carVolume,ac.currentTime,.03);const percent=Math.round(carVolume*100)+'%';['menuCarVolume','pauseCarVolume'].forEach(id=>$(id).value=Math.round(carVolume*100));['menuCarVolumeValue','pauseCarVolumeValue'].forEach(id=>$(id).value=percent);if(persist)try{localStorage.setItem('apex.carVolume',carVolume)}catch(e){console.warn('Could not save car volume',e)}}
+setCarVolume(carVolume);
+$('menuCarVolume').addEventListener('input',e=>setCarVolume(+e.target.value/100));$('menuCarVolume').addEventListener('change',()=>setCarVolume(carVolume,true));
 $('pauseCarVolume').addEventListener('input',e=>setCarVolume(+e.target.value/100));$('pauseCarVolume').addEventListener('change',()=>setCarVolume(carVolume,true));
 function audio(){if(ac)return;try{
  ac=new(window.AudioContext||window.webkitAudioContext)();
@@ -1107,7 +1165,7 @@ function clearDriveInput(){for(const k in K)K[k]=TC[k]=0;document.querySelectorA
 function setGamePaused(value){
  if(value&&state!=='race'&&state!=='grid')return;
  paused=value;clearDriveInput();$('pauseMenu').hidden=!paused;
- if(paused){$('pauseNote').textContent=NET.on?'Local pause only · other drivers keep racing.':'Race paused.';$('audioPanel').hidden=true;$('pauseOptions').hidden=true;$('showPauseOptions').setAttribute('aria-expanded','false');$('resumeGame').focus()}
+ if(paused){$('pauseNote').textContent=NET.on?'Local pause only · other drivers keep racing.':'Race paused.';$('pauseOptions').hidden=true;$('showPauseOptions').setAttribute('aria-expanded','false');$('resumeGame').focus()}
  else{$('pauseOptions').hidden=true;$('showPauseOptions').setAttribute('aria-expanded','false');$('gameMenuToggle').focus();prev=performance.now()}
 }
 function leaveRace(){
