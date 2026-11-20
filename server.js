@@ -20,8 +20,8 @@ const srv=http.createServer((req,res)=>{
 const wss=new WebSocketServer({server:srv,maxPayload:4096});
 wss.on('connection',ws=>{let room,id,key;
  ws.on('message',d=>{let m;try{m=JSON.parse(d)}catch(e){return}
-  if(m.t==='j'&&!room){id=String(m.id).slice(0,24);key=String(m.r).slice(0,8);if(!rooms.has(key))rooms.set(key,new Map());room=rooms.get(key);if(room.size>=12)return ws.close();
-   room.set(id,{ws,s:{}});room.forEach((o,k)=>{if(k!==id)ws.send(JSON.stringify({t:'p',id:k,s:o.s}))})}
-  else if(m.t==='p'&&room&&room.get(id)){const o=room.get(id);Object.assign(o.s,m.s);const out=JSON.stringify({t:'p',id,s:m.s});room.forEach((p,k)=>{if(k!==id&&p.ws.readyState===1)p.ws.send(out)})}});
- ws.on('close',()=>{if(!room)return;room.delete(id);room.forEach(p=>p.ws.readyState===1&&p.ws.send(JSON.stringify({t:'l',id})));if(!room.size)rooms.delete(key)})});
+  if(m.t==='j'&&!room){id=String(m.id).slice(0,24);key=String(m.r).slice(0,8);if(!rooms.has(key)){const created=new Map();created.host=id;rooms.set(key,created)}room=rooms.get(key);if(room.size>=12)return ws.close();
+   room.set(id,{ws,s:{}});ws.send(JSON.stringify({t:'hi',host:room.host}));room.forEach((o,k)=>{if(k!==id)ws.send(JSON.stringify({t:'p',id:k,s:{...o.s,h:k===room.host}}))})}
+  else if(m.t==='p'&&room&&room.get(id)&&m.s&&typeof m.s==='object'){const o=room.get(id);o.s={...m.s,h:id===room.host};const out=JSON.stringify({t:'p',id,s:o.s});room.forEach((p,k)=>{if(k!==id&&p.ws.readyState===1)p.ws.send(out)})}});
+ ws.on('close',()=>{if(!room)return;const wasHost=id===room.host;room.delete(id);room.forEach(p=>p.ws.readyState===1&&p.ws.send(JSON.stringify({t:'l',id})));if(!room.size)rooms.delete(key);else if(wasHost){room.host=room.keys().next().value;room.forEach((p,k)=>p.ws.readyState===1&&p.ws.send(JSON.stringify({t:'hi',host:room.host})))}})});
 srv.listen(process.env.PORT||3000,()=>console.log('APEX GP on :'+(process.env.PORT||3000)));
