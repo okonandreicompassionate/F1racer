@@ -1,12 +1,27 @@
-// Tiny relay for APEX GP multiplayer. Setup: npm i ws   then: node server.js
-// Serves index.html and relays player state per room. Deploy on Render/Railway; friends open the URL.
-const http=require('http'),fs=require('fs'),{WebSocketServer}=require('ws');
-const srv=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end(fs.readFileSync(__dirname+'/index.html'))});
-const wss=new WebSocketServer({server:srv,maxPayload:4096}),rooms=new Map();
-wss.on('connection',ws=>{let room,id;
+// APEX GP server: serves the game, the /soundtrack folder, and the multiplayer relay.
+// Setup: npm i ws   then: node server.js
+const http=require('http'),fs=require('fs'),path=require('path'),zlib=require('zlib'),{WebSocketServer}=require('ws');
+const ROOT=__dirname,MUS=path.join(ROOT,'soundtrack'),AUD=/\.(mp3|ogg|wav|m4a|flac|aac)$/i;
+const TYPES={'.mp3':'audio/mpeg','.ogg':'audio/ogg','.wav':'audio/wav','.m4a':'audio/mp4','.flac':'audio/flac','.aac':'audio/aac'};
+const CORS={'access-control-allow-origin':'*'},rooms=new Map();
+let page=null,pageGz=null;
+const send=(res,code,type,body)=>{res.writeHead(code,{'content-type':type,...CORS});res.end(body)};
+const srv=http.createServer((req,res)=>{
+ const u=decodeURIComponent(req.url.split('?')[0]);
+ if(u==='/api/music'){let l=[];try{l=fs.readdirSync(MUS).filter(f=>AUD.test(f))}catch(e){}return send(res,200,'application/json',JSON.stringify(l))}
+ if(u==='/api/rooms')return send(res,200,'application/json',JSON.stringify([...rooms].map(([r,m])=>({r,n:m.size}))));
+ if(u.startsWith('/soundtrack/')){const f=path.join(MUS,path.basename(u));if(!fs.existsSync(f))return send(res,404,'text/plain','not found');
+  const size=fs.statSync(f).size,ty=TYPES[path.extname(f).toLowerCase()]||'application/octet-stream',m=/bytes=(\d*)-(\d*)/.exec(req.headers.range||'');
+  if(m){const a=m[1]?+m[1]:0,b=m[2]?Math.min(+m[2],size-1):size-1;res.writeHead(206,{'content-type':ty,'accept-ranges':'bytes','content-range':`bytes ${a}-${b}/${size}`,'content-length':b-a+1,...CORS});return fs.createReadStream(f,{start:a,end:b}).pipe(res)}
+  res.writeHead(200,{'content-type':ty,'accept-ranges':'bytes','content-length':size,...CORS});return fs.createReadStream(f).pipe(res)}
+ if(!page){page=fs.readFileSync(path.join(ROOT,'index.html'));pageGz=zlib.gzipSync(page,{level:9})}
+ const gz=/gzip/.test(req.headers['accept-encoding']||'');
+ res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'public,max-age=600',...(gz?{'content-encoding':'gzip'}:{})});res.end(gz?pageGz:page)});
+const wss=new WebSocketServer({server:srv,maxPayload:4096});
+wss.on('connection',ws=>{let room,id,key;
  ws.on('message',d=>{let m;try{m=JSON.parse(d)}catch(e){return}
-  if(m.t==='j'){id=String(m.id).slice(0,24);const k=String(m.r).slice(0,8);if(!rooms.has(k))rooms.set(k,new Map());room=rooms.get(k);if(room.size>=12)return ws.close();
-   room.set(id,{ws,s:{}});room.forEach((o,k2)=>{if(k2!==id)ws.send(JSON.stringify({t:'p',id:k2,s:o.s}))})}
-  else if(m.t==='p'&&room&&room.get(id)){const o=room.get(id);Object.assign(o.s,m.s);const out=JSON.stringify({t:'p',id,s:m.s});room.forEach((p,k2)=>{if(k2!==id&&p.ws.readyState===1)p.ws.send(out)})}});
- ws.on('close',()=>{if(!room)return;room.delete(id);room.forEach(p=>p.ws.readyState===1&&p.ws.send(JSON.stringify({t:'l',id})));if(!room.size)for(const[k,v]of rooms)if(v===room)rooms.delete(k)})});
+  if(m.t==='j'&&!room){id=String(m.id).slice(0,24);key=String(m.r).slice(0,8);if(!rooms.has(key))rooms.set(key,new Map());room=rooms.get(key);if(room.size>=12)return ws.close();
+   room.set(id,{ws,s:{}});room.forEach((o,k)=>{if(k!==id)ws.send(JSON.stringify({t:'p',id:k,s:o.s}))})}
+  else if(m.t==='p'&&room&&room.get(id)){const o=room.get(id);Object.assign(o.s,m.s);const out=JSON.stringify({t:'p',id,s:m.s});room.forEach((p,k)=>{if(k!==id&&p.ws.readyState===1)p.ws.send(out)})}});
+ ws.on('close',()=>{if(!room)return;room.delete(id);room.forEach(p=>p.ws.readyState===1&&p.ws.send(JSON.stringify({t:'l',id})));if(!room.size)rooms.delete(key)})});
 srv.listen(process.env.PORT||3000,()=>console.log('APEX GP on :'+(process.env.PORT||3000)));
