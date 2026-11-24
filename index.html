@@ -269,6 +269,11 @@ body.touch #right{z-index:8}
 #right #raceMessages>#gridTag{position:absolute;top:26px;left:auto;right:0;text-align:right;font-size:14px}
 #right #raceMessages>#weatherLabel{position:absolute;top:52px;left:auto;right:0;transform:none}
 #right #raceMessages>#driftTag{position:absolute;top:78px;left:auto;right:0;transform:none;font-size:16px}
+body.touch #raceMessages{position:fixed;left:50%;right:auto;top:auto;bottom:calc(78px + env(safe-area-inset-bottom));width:min(280px,calc(100vw - 24px));height:auto;transform:translateX(-50%);z-index:12}
+body.touch #right #raceMessages>div{position:relative!important;left:auto!important;right:auto!important;top:auto!important;width:max-content;max-width:100%;margin:2px auto 0;text-align:center!important;transform:none!important;overflow-wrap:normal}
+body.touch #right #raceMessages>#pitMsg{font-size:12px}
+body.touch #right #raceMessages>#gridTag{font-size:13px}
+body.touch #right #raceMessages>#weatherLabel{font-size:12px}
 #goMsg,#lights{display:none!important}
 #dash{left:calc(12px + env(safe-area-inset-left));right:auto;bottom:calc(12px + env(safe-area-inset-bottom));transform:none;width:min(250px,34vw)}
 body.touch #dash{display:none!important}
@@ -403,7 +408,10 @@ const po=f=>({polygonOffset:true,polygonOffsetFactor:-f,polygonOffsetUnits:-f});
 const TRACKS=[
  {name:'Lagos GP',subtitle:'The home circuit · Three laps. One clean line.',banner:'LAGOS',points:[[0,0],[180,0],[360,0],[450,-45],[485,-120],[445,-185],[370,-205],[330,-262],[348,-335],[300,-395],[215,-400],[165,-345],[105,-315],[35,-345],[-35,-405],[-135,-415],[-225,-375],[-255,-285],[-205,-205],[-240,-125],[-225,-45],[-150,-5],[-70,0]]},
  {name:'Harbor Sprint',subtitle:'Tight street corners and a fast waterfront run.',banner:'HARBOR',points:[[0,0],[170,0],[340,0],[425,-35],[450,-115],[395,-165],[410,-240],[345,-290],[250,-275],[190,-210],[120,-190],[55,-245],[-20,-310],[-125,-320],[-220,-280],[-260,-195],[-245,-105],[-185,-35],[-110,-2],[-55,0]]},
- {name:'Alpine Ring',subtitle:'A flowing mountain circuit with quick direction changes.',banner:'ALPINE',points:[[0,0],[190,0],[360,10],[460,70],[480,160],[410,225],[320,200],[250,255],[160,300],[50,285],[-40,235],[-135,260],[-235,225],[-285,140],[-250,60],[-195,5],[-120,0],[-55,0]]}
+ {name:'Alpine Ring',subtitle:'A flowing mountain circuit with quick direction changes.',banner:'ALPINE',points:[[0,0],[190,0],[360,10],[460,70],[480,160],[410,225],[320,200],[250,255],[160,300],[50,285],[-40,235],[-135,260],[-235,225],[-285,140],[-250,60],[-195,5],[-120,0],[-55,0]]},
+ {name:'Desert Dash',subtitle:'Fast sweepers and heavy braking zones beneath the desert sun.',banner:'DESERT',points:[[0,0],[220,0],[390,-20],[470,-75],[510,-155],[455,-230],[350,-215],[285,-285],[175,-330],[70,-285],[-45,-325],[-170,-300],[-275,-220],[-290,-115],[-225,-35],[-120,-10],[-55,0]]},
+ {name:'Coastal Grand Prix',subtitle:'A technical seaside lap with a long back-straight.',banner:'COAST',points:[[0,0],[155,0],[300,25],[430,-20],[500,-100],[470,-190],[370,-235],[300,-315],[205,-350],[115,-310],[35,-235],[-65,-250],[-150,-310],[-250,-285],[-325,-205],[-310,-105],[-245,-25],[-155,-5],[-70,0]]},
+ {name:'City Night',subtitle:'Floodlit technical corners through a compact downtown loop.',banner:'CITY',points:[[0,0],[130,0],[230,-20],[315,-85],[300,-170],[210,-215],[135,-180],[75,-230],[95,-305],[25,-370],[-75,-355],[-145,-285],[-225,-285],[-300,-220],[-285,-135],[-210,-75],[-145,-30],[-65,0]]}
 ];
 let PS=[],T=[],R=[],S=[],activeTrack=0;
 function buildTrack(def){
@@ -1098,9 +1106,10 @@ function updateWeather(dt,now){
 }
 WEATHER_TYPES.forEach((weather,i)=>{const b=document.createElement('button');b.textContent=weather.name;b.classList.toggle('selected',i===WEATHER.choice);b.onclick=()=>setWeatherChoice(i);$('weatherSelect').appendChild(b)});
 {let a=null;try{a=localStorage.getItem('apex.r')}catch(e){}setRules(a?a.split(',').map(Number):[1,1,1,0])}
-function pitInfo(){const sp=S[N]/N,dl=(((st.idx+N/2)%N)-N/2)*sp;return{dl,lane:dl>-235&&dl<475&&Math.abs(st.lat-PIT_LANE_CENTER)<8}}
+function pitInfo(){const trackLength=S[N];let dl=((st.raceDistance%trackLength)+trackLength)%trackLength;if(dl>475){const beforeStart=dl-trackLength;if(beforeStart>=-235)dl=beforeStart}return{dl,lane:dl>-235&&dl<475&&Math.abs(st.lat-PIT_LANE_CENTER)<8}}
 function pitAssistEligible(pi=pitInfo()){const boxDelta=PIT_BOX_START+PIT.stall*PIT_BOX_SPACING-pi.dl;return(pi.dl>=-500&&pi.dl<=PIT_BOX_START+PIT.stall*PIT_BOX_SPACING+35)||(pi.lane&&boxDelta>=-5&&boxDelta<=35)}
 function pitAssistSteering(pi){
+ if(PIT.on)return 0;
  const remaining=PIT_BOX_START+PIT.stall*PIT_BOX_SPACING-pi.dl;
  if(remaining< -5){pitLaneRequested=false;pitExitRequested=true}
  const spacing=S[N]/N,lookAhead=clamp(vfNow*.55,7,18),targetIndex=wrapIndex(st.idx+Math.max(1,Math.round(lookAhead/spacing)));
@@ -1109,7 +1118,7 @@ function pitAssistSteering(pi){
  const laneTarget=(7.8+(PIT_LANE_CENTER-7.8)*entryBlend)*(1-exitBlend)+7.8*exitBlend;
  const dx=PS[targetIndex].x+R[targetIndex].x*laneTarget-st.x,dz=PS[targetIndex].z+R[targetIndex].z*laneTarget-st.z;
  const error=Math.atan2(Math.sin(Math.atan2(dx,dz)-st.h),Math.cos(Math.atan2(dx,dz)-st.h));
- if(pitExitRequested&&pi.dl>=460&&Math.abs(st.lat-7.8)<2.5)pitExitRequested=false;
+ if(pitExitRequested&&(pi.dl>=475||pi.dl<=-235||(!pitLaneRequested&&pi.dl>=300&&Math.abs(st.lat-7.8)<4)))pitExitRequested=false;
  return clamp(error*1.8,-.9,.9)
 }
 function setPitLaneMode(value=!pitLaneRequested){if(state!=='race'||QL.on)return;if(value&&(!pitAssistEligible()||pitExitRequested))return;pitLaneRequested=value;$('pitLaneToggle').setAttribute('aria-pressed',String(value));$('pitLaneToggle').textContent=value?'PIT ✓':'PIT'}
@@ -1142,7 +1151,7 @@ const fmt=t=>{if(t==null)return'–:––.–––';const m=Math.floor(t/60);r
 function physics(dt){
  st.impactCooldown=Math.max(0,st.impactCooldown-dt);st.shakeCd=Math.max(0,(st.shakeCd||0)-dt);
  const racing=state==='race',thr=racing?inp('up'):0,brk=racing?inp('down'):state==='done'?.35:0;thrNow=thr;brkNow=brk;
- let fx=Math.sin(st.h),fz=Math.cos(st.h),vf=st.vx*fx+st.vz*fz;const engineSpeedBefore=vf,av=Math.abs(vf),edge=Math.abs(st.lat),pitState=pitInfo(),pitAssist=pitLaneRequested||pitExitRequested?pitAssistSteering(pitState):0,drifting=racing&&inp('drift')>0&&av>14;
+ let fx=Math.sin(st.h),fz=Math.cos(st.h),vf=st.vx*fx+st.vz*fz;const engineSpeedBefore=vf,av=Math.abs(vf),edge=Math.abs(st.lat),pitState=pitInfo(),pitAssist=!PIT.on&&(pitLaneRequested||pitExitRequested)?pitAssistSteering(pitState):0,drifting=racing&&inp('drift')>0&&av>14;
  const userSteer=(inp('left')-inp('right'))*(st.steeringDamage>0?1-st.steeringDamage*.45:1),tg=clamp(userSteer+pitAssist,-1,1),rate=tg*st.steer<=0||Math.abs(tg)>Math.abs(st.steer)?9:11;st.steer+=clamp(tg-st.steer,-rate*dt,rate*dt);
  const pit_=pitState.lane,wetGrip=1-WEATHER.current*.4,surface=pit_?'road':edge>W/2+1.6?'grass':edge>W/2?'kerb':'road',surfaceGrip=(surface==='grass'?PHYS.grassGrip:surface==='kerb'?PHYS.kerbGrip:PHYS.roadGrip)*wetGrip;st.surface=surface;
  const downforceAccel=PHYS.aeroDownforce*av*av,normalAccel=PHYS.gravity+downforceAccel;
