@@ -1149,16 +1149,16 @@ function physics(dt){
  const carType=CAR_TYPES[selectedCar],wearGrip=1-st.tireWear*.22-Math.max(0,st.tireWear-.7)*1.6,tempGrip=clamp(1-Math.abs(st.tireTemp-95)/115,.72,1),damageGrip=1-st.wingDamage*.16-st.steeringDamage*.24,aG=PHYS.tireMu*normalAccel*surfaceGrip*wearGrip*tempGrip*damageGrip*(drifting?.58:1)*(brk>.5&&Math.abs(st.steer)>.3&&av>40?.78:1)*carType.grip;
  const delta=steeringAngle(st.steer,av,carType)*damageGrip,wheelbase=WHEELBASE;
  const targetYaw=clamp(vf*Math.tan(delta)/wheelbase+(st.pullDir||0)*st.steeringDamage*.3*Math.min(1,av/30),-aG/Math.max(av,4),aG/Math.max(av,4));
- const yawResponse=6.4/(1+av*.0046)*(drifting?1:(1-.3*clamp(Math.abs(st.latA||0)/Math.max(2,aG),0,1)));
+ const yawResponse=8/(1+av*.0046)*(drifting?1:(1-.3*clamp(Math.abs(st.latA||0)/Math.max(2,aG),0,1)));
  st.yawRate+=(targetYaw-st.yawRate)*(1-Math.exp(-yawResponse*dt));
  st.h+=st.yawRate*dt;
  fx=Math.sin(st.h);fz=Math.cos(st.h);const rx=-fz,rz=fx;
  vf=st.vx*fx+st.vz*fz;let vl=st.vx*rx+st.vz*rz,a=0;
  const damagedTopSpeed=104*carType.speed*(1-st.damage*.28-st.wingDamage*.2);
  if(thr>0)a+=Math.max(0,11.6*carType.power*(1-Math.pow(Math.max(0,vf)/damagedTopSpeed,1.75)))*thr*(1-st.damage*.4)*(surface==='grass'?.78:surface==='kerb'?.82:1);
- else a-=Math.sign(vf||1)*(.65+.00024*vf*vf);
+ else a-=Math.sign(vf||1)*(1.5+.00032*vf*vf);
  if(brk>0&&racing&&vf<1)a-=7*brk;else a-=Math.sign(vf||1)*brk*(25+.0028*vf*vf)*(1-st.damage*.12);
- a-=Math.sign(vf||1)*((.00028+st.wingDamage*.0012)*vf*vf+.08);
+ a-=Math.sign(vf||1)*((.00028+st.wingDamage*.0012)*vf*vf+.35);
  if(surface==='grass')a-=Math.sign(vf||1)*(1.6+.0012*vf*vf);
  const latUse=clamp(Math.abs(st.latA||0)/Math.max(2,aG),0,1),longCap=aG*Math.sqrt(Math.max(.04,1-latUse*latUse));
  if(a>0)a=Math.min(a,longCap);else a=Math.max(a,-aG*1.25);
@@ -1166,7 +1166,7 @@ function physics(dt){
  if(pitLaneRequested&&vf>0){const remaining=PIT_BOX_START+PIT.stall*PIT_BOX_SPACING-pitState.dl,targetSpeed=Math.sqrt(20*Math.max(0,remaining-2));if(vf>targetSpeed)vf=Math.max(targetSpeed,vf-20*dt);if(remaining<=2&&Math.abs(st.lat-PIT_LANE_CENTER)<3.2)vf=0}
  if(!thr&&!brk&&vf*(vf-a*dt)<=0)vf=0;
  st.engineAccel=thr?Math.max(0,(vf-engineSpeedBefore)/dt):0;
- const grip=PHYS.tireMu*(PHYS.gravity+PHYS.aeroDownforce*vf*vf)*surfaceGrip*wearGrip*tempGrip*damageGrip*(drifting?.48:1)*carType.grip;
+ const grip=PHYS.tireMu*(PHYS.gravity+PHYS.aeroDownforce*vf*vf)*surfaceGrip*wearGrip*tempGrip*damageGrip*(drifting?.48:1.45)*carType.grip;
  const slipTarget=vf*Math.tan(delta)*(drifting?.72:.18);
  const dv=clamp(slipTarget-vl,-grip*dt,grip*dt);vl+=dv;
  if(surface==='grass')vl*=Math.pow(.94,dt*60);
@@ -1174,7 +1174,7 @@ function physics(dt){
  // Tire temperature and wear respond to sliding, lockups and running off-track.
  const slipHeat=Math.abs(slipTarget-vl)+Math.abs(st.steer)*av*.012;st.tireTemp+=((surface==='road'?82:surface==='kerb'?92:68)-st.tireTemp)*dt*.08+slipHeat*dt*.045;st.tireTemp=clamp(st.tireTemp,45,145);
  if(racing)st.tireWear=clamp(st.tireWear+dt*RS.wm*(.0022+slipHeat*.00007+(surface==='grass'?.0009:0)+(brk>.85&&av>45?.0006:0)),0,1);
- if(Math.abs(vf)>.1)vf-=Math.sign(vf)*Math.min(3.2,Math.abs(vl)*dt*(.05+.0011*av));
+ if(Math.abs(vf)>.1)vf-=Math.sign(vf)*Math.min(4.5,Math.abs(vl)*dt*(.14+.0024*av));
  st.vx=fx*vf+rx*vl;st.vz=fz*vf+rz*vl;if(PIT.on){st.vx=st.vz=0}st.x+=st.vx*dt;st.z+=st.vz*dt;reverseNow=vf<-.1;vfNow=Math.abs(vf);
  st.longA=clamp((vf-(st.vfPrev==null?vf:st.vfPrev))/Math.max(dt,1e-4),-85,60);st.vfPrev=vf;st.latA=clamp(vf*st.yawRate,-70,70);
  let i=nearest(st.x,st.z),R0=R[i];st.lat=(st.x-PS[i].x)*R0.x+(st.z-PS[i].z)*R0.z;
@@ -1301,11 +1301,11 @@ function visuals(dt,now,alpha){
  wheels.forEach(w=>{spinWheel(w.sp,vf/w.r*dt)});
  const frontAngle=steeringAngle(renderSteer,vf)*(1-st.steeringDamage*.45);steeringWheelSets[0]?.forEach(w=>{w.pivot.rotation.y=ackermannAngle(frontAngle,w.pivot.position.x);spinWheel(w.spin,-vf*dt/.36)});driverSteer.rotation.z=-frontAngle*2.05;updateSteeringDisplay(now);
  sun.position.set(renderX,0,renderZ).addScaledVector(sunDir,120);sun.target.position.set(renderX,0,renderZ);sky.position.copy(camera.position);skyMat.uniforms.uTime.value=now*.001;
- helmetN.visible=camMode!==1;cockpitHalo.visible=camMode===1;cockpitOccluders.forEach(o=>o.visible=camMode!==1);car.updateMatrixWorld(true);
+ helmetN.visible=camMode!==1;cockpitHalo.visible=camMode===1;cockpitOccluders.forEach(o=>o.visible=camMode!==1);car.rotation.order='YXZ';{const live=state==='race'||state==='done',sq=clamp(vf*vf*2.2e-6,0,.028),bump=live?(Math.sin(now*.071)*.5+Math.sin(now*.173)*.3+Math.sin(now*.37)*.2)*(.0012+clamp(vf/100,0,1)*.0035+(st.surface==='kerb'?.012:st.surface==='grass'?.02:0)):0;car.position.y=-sq+bump;car.rotation.x=clamp(-gLongSm*.0007,-.04,.04)+bump*.9;car.rotation.z=clamp(gLatSm*.00055,-.035,.035)+bump*.6}car.updateMatrixWorld(true);
  const fx=Math.sin(renderH),fz=Math.cos(renderH);
  if(state==='menu'){menuT+=dt;const a=menuT*.18+.6;tgt.set(renderX+Math.cos(a)*7.4,2.1,renderZ+Math.sin(a)*7.4);camera.position.lerp(tgt,1-Math.exp(-dt*3));look.set(renderX-Math.sin(a)*2.2,.65,renderZ+Math.cos(a)*2.2);camera.fov=45}
  else if(camMode===0){tgt.set(renderX-fx*(3.9+vf*.009),1.42+vf*.002,renderZ-fz*(3.9+vf*.009));camera.position.lerp(tgt,1-Math.exp(-dt*7));tv.set(renderX+fx*5,.6,renderZ+fz*5);look.lerp(tv,1-Math.exp(-dt*10));camera.fov=51+vf*.13}
- else if(camMode===1){car.localToWorld(camera.position.set(0,.98,-.12));car.localToWorld(look.set(0,.94,12));camera.fov=68+vf*.075}
+ else if(camMode===1){car.localToWorld(camera.position.set(clamp(-gLatSm*.0008,-.05,.05),.99,-.14+clamp(-gLongSm*.0005,-.05,.05)));car.localToWorld(look.set(0,.84,14));camera.fov=64+vf*.07}
  else{car.localToWorld(camera.position.set(0,1.45,-.9));car.localToWorld(look.set(0,.9,12));camera.fov=70+vf*.15}
  gLatSm+=((st.latA||0)-gLatSm)*(1-Math.exp(-9*dt));gLongSm+=((st.longA||0)-gLongSm)*(1-Math.exp(-9*dt));
  camera.lookAt(look);
@@ -1376,9 +1376,12 @@ let steeringDisplayCanvas=null,steeringDisplayContext=null,steeringDisplayTextur
  const suit=new THREE.MeshPhysicalMaterial({color:0xb51e2b,roughness:.58,clearcoat:.22}),suitDark=new THREE.MeshStandardMaterial({color:0x172a45,roughness:.72}),white=new THREE.MeshStandardMaterial({color:0xe6e8eb,roughness:.55}),glove=new THREE.MeshPhysicalMaterial({color:0x10151c,roughness:.62}),red=new THREE.MeshStandardMaterial({color:0xd51f35,roughness:.4}),blue=new THREE.MeshStandardMaterial({color:0x0875bd,roughness:.38}),carbon=new THREE.MeshStandardMaterial({color:0x10151b,metalness:.48,roughness:.42});
  const haloMat=new THREE.MeshStandardMaterial({color:0x11161c,metalness:.52,roughness:.48});
  const haloBar=(pts,r)=>{const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p))),m=new THREE.Mesh(new THREE.TubeGeometry(curve,32,r,8,false),haloMat);m.castShadow=false;m.receiveShadow=false;cockpitHalo.add(m)};
- haloBar([[-.68,1.23,.43],[-.54,1.29,.41],[0,1.31,.4],[.54,1.29,.41],[.68,1.23,.43]],.032);
- haloBar([[0,1.31,.4],[0,1.12,.43],[0,.91,.46]],.025);
- [-1,1].forEach(s=>haloBar([[s*.68,1.23,.43],[s*.59,1.08,.4],[s*.52,.94,.34]],.026));
+ haloBar([[-.68,1.23,.43],[-.54,1.29,.41],[0,1.31,.4],[.54,1.29,.41],[.68,1.23,.43]],.044);
+ haloBar([[0,1.31,.4],[0,1.12,.43],[0,.91,.46]],.042);
+ [-1,1].forEach(s=>haloBar([[s*.68,1.23,.43],[s*.59,1.08,.4],[s*.52,.94,.34]],.036));
+ const bodyMat=new THREE.MeshStandardMaterial({color:0xc9111e,metalness:.2,roughness:.3});bodyMat.userData.k='c';if(typeof DM!=='undefined'&&Array.isArray(DM))DM.push(bodyMat);
+ const cockpitBox=(w,h,l,x,y,z,ry,rz,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,l),mat);m.position.set(x,y,z);m.rotation.y=ry;m.rotation.z=rz;cockpitHalo.add(m);return m};
+ [-1,1].forEach(s=>{cockpitBox(.09,.07,1.25,s*.4,.82,.55,s*.04,s*.15,haloMat);cockpitBox(.42,.1,1.5,s*.62,.6,.7,-s*.1,-s*.05,bodyMat)});
  const addPart=(geo,mat,pos,scale,parent=driverRig)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(scale)m.scale.set(...scale);m.castShadow=true;parent.add(m);return m};
  const segment=(a,b,r,mat,parent)=>{const d=new THREE.Vector3().subVectors(new THREE.Vector3(...b),new THREE.Vector3(...a)),m=new THREE.Mesh(new THREE.CylinderGeometry(r*.88,r,d.length(),10),mat);m.position.copy(new THREE.Vector3(...a).add(new THREE.Vector3(...b)).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());m.castShadow=true;parent.add(m);return m};
  addPart(new THREE.SphereGeometry(.23,20,14),suit,[0,.59,-.32],[1,.95,.78]);
@@ -1391,7 +1394,7 @@ let steeringDisplayCanvas=null,steeringDisplayContext=null,steeringDisplayTextur
  addPart(new THREE.SphereGeometry(.145,24,12),new THREE.MeshPhysicalMaterial({color:0x101a25,metalness:.72,roughness:.16,clearcoat:1}),[0,1.005,-.27],[.96,.42,.36]);
  addPart(new THREE.BoxGeometry(.045,.19,.11),red,[0,1.14,-.4],[1,1,.72]);
  [-1,1].forEach(s=>{addPart(new THREE.SphereGeometry(.045,12,10),suitDark,[s*.16,.96,-.38],[.55,.8,.7]);addPart(new THREE.BoxGeometry(.03,.055,.018),blue,[s*.125,.88,-.285])});
- driverSteer.position.set(0,.75,.34);driverSteer.scale.setScalar(.82);driverRig.add(driverSteer);
+ driverSteer.position.set(0,.79,.30);driverSteer.scale.setScalar(.9);driverSteer.rotation.x=-.3;driverRig.add(driverSteer);
  const wheelBacking=addPart(new THREE.BoxGeometry(.36,.265,.045),carbon,[0,0,0],[1,1,1],driverSteer);
  const rimPoints=[[-.23,-.145,0],[-.17,-.195,0],[.17,-.195,0],[.23,-.145,0],[.255,.055,0],[.19,.165,0],[-.19,.165,0],[-.255,.055,0]].map(p=>new THREE.Vector3(...p));
  const rimCurve=new THREE.CatmullRomCurve3(rimPoints,true,'catmullrom',.25),rim=new THREE.Mesh(new THREE.TubeGeometry(rimCurve,64,.028,10,true),new THREE.MeshStandardMaterial({color:0x171b20,metalness:.22,roughness:.72}));
